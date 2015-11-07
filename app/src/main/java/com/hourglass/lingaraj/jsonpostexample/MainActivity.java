@@ -174,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
                     gson = new GsonBuilder().create();
                     profileData = gson.fromJson(responseString, ProfileData.class);
                     profileData.userProfiles = new ArrayList<UserProfiles>();
+                    //array list is Initialized only once.
 
                     /* GET call will get the following object as response,
                     * { "userProfiles":[{}]}
