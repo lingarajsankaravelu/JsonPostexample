@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
     Gson gson;
     TextView textViewToDisplayResultUrlWhereDataIsStored;
 
-    String url="http://demo5585860.mockable.io/jsonuserprofile";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
         try {
            Gson gson = new Gson();
             String gsonString = gson.toJson(profileData,  ProfileData.class);
+            //Gson convert Json data to String and send it as StringEntity with the URL.
             entity = new StringEntity(gsonString);
         }
         catch (UnsupportedEncodingException e) {
@@ -117,17 +117,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        writeDataBackToserver.post(getApplicationContext(),getString(R.string.postUrl),entity,"application/json",new JsonHttpResponseHandler()
-        {
+        writeDataBackToserver.post(getApplicationContext(), getString(R.string.postUrl), entity, "application/json", new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Log.v("successobject", response.toString());
                 try {
                     textViewToDisplayResultUrlWhereDataIsStored.setText(response.get("uri").toString());
-                }
-                catch (Exception e)
-                {
-                    Log.e("error",e.toString());
+                    /* In response of our successfull POST call request, we will get a URL back from
+                     *  "myjson.com", where the data we have sent is stored. If you are using MongoDb etc
+                     *   this will be the same url which you used for POST call, which can also be used With GET Call.
+                     */
+                } catch (Exception e) {
+                    Log.e("error", e.toString());
                 }
 
 
@@ -137,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                Log.v("successarray",response.toString());
+                Log.v("successarray", response.toString());
 
                 progressDialog.dismiss();
             }
@@ -149,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                 progressDialog.dismiss();
             }
 
-          });
+        });
 
 
     }
@@ -157,55 +158,64 @@ public class MainActivity extends AppCompatActivity {
 
     private void getAvailableDataOnPostUrl()
     {
-
+        /* This get Call is to say the Serializable object and Gson what are the
+         *  key and value it have to match with. Like giving a structure to how the data will
+         *  be written.
+         */
 
        AsyncHttpClient httpClient=new AsyncHttpClient();
-        httpClient.get(getString(R.string.serverUrl),new JsonHttpResponseHandler()
-        {
+        httpClient.get(getString(R.string.serverUrl), new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Log.v("successjObject", response.toString());
                 try {
 
-                    responseString=response.toString();
-                    gson=new GsonBuilder().create();
-                    profileData=gson.fromJson(responseString, ProfileData.class);
+                    responseString = response.toString();
+                    gson = new GsonBuilder().create();
+                    profileData = gson.fromJson(responseString, ProfileData.class);
+                    profileData.userProfiles = new ArrayList<UserProfiles>();
+
+                    /* GET call will get the following object as response,
+                    * { "userProfiles":[{}]}
+                     * This will be passed to the Gson and Profile data class  to set the
+                     *  members and values accordingly.
+                     */
 
 
-               }
-                catch (Exception e) {
-                    Log.v("arrayerror",e.toString());
+                } catch (Exception e) {
+                    Log.v("arrayerror", e.toString());
                     e.printStackTrace();
                 }
             }
+
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                Log.v("successJArray",response.toString());
+                Log.v("successJArray", response.toString());
                 super.onSuccess(statusCode, headers, response);
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                Log.v("successresponsestring",responseString);
+                Log.v("successresponsestring", responseString);
                 super.onSuccess(statusCode, headers, responseString);
             }
 
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
-                Log.e("failureJarray",errorResponse.toString());
+                Log.e("failureJarray", errorResponse.toString());
                 super.onFailure(statusCode, headers, throwable, errorResponse);
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                Log.e("failureStringres",responseString);
+                Log.e("failureStringres", responseString);
                 super.onFailure(statusCode, headers, responseString, throwable);
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                Log.e("failureJObject",errorResponse.toString());
+                Log.e("failureJObject", errorResponse.toString());
                 super.onFailure(statusCode, headers, throwable, errorResponse);
             }
         });
@@ -216,8 +226,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void addDataToSerializableObject()
     {
+        /* This method will add entered data to serializable objects
+         *  new ArrayList<UserPorfiles> allow you to store and
+         *  multiple userprofile values.
+          */
 
-        profileData.userProfiles=new ArrayList<UserProfiles>();
+
         userProfile=new UserProfiles();
         userProfile.firstName=firstname.getText().toString();
         userProfile.lastName=lastname.getText().toString();
@@ -225,6 +239,12 @@ public class MainActivity extends AppCompatActivity {
         userProfile.mobileNumber=Integer.parseInt(mobileNumber.getText().toString().trim());
         userProfile.eMail=email.getText().toString();
         profileData.userProfiles.add(userProfile);
+        firstname.setText("");
+        lastname.setText("");
+        mobileNumber.setText("");
+        age.setText("");
+        email.setText("");
+
 
 
 
